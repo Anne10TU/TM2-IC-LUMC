@@ -35,7 +35,7 @@ def receive_feedback():
 
 def send_command(command):
     """Verstuur het geselecteerde scenario naar de Arduino, als verbonden en klaar."""
-    global is_ready  # Zorg ervoor dat we is_ready correct gebruiken
+    global is_ready  # Voeg de global declaratie hier toe
     if is_ready:
         if ser:
             try:
@@ -45,6 +45,7 @@ def send_command(command):
                 is_ready = False  # Markeer de Arduino als niet klaar
             except serial.SerialException as e:
                 print(f"Fout bij het versturen van commando: {e}")
+                messagebox.showerror("Fout", f"Fout bij het versturen van commando: {e}")
         else:
             print(f"Simulatie: zou {command} naar Arduino sturen.")
     else:
@@ -83,7 +84,6 @@ def reset_gui():
     venous_slider.config(state="normal")
     feedback_var.set("Huidig scenario: Geen")
     feedback_dc_var.set(f"Arterieel DC: {arterial_dc.get()}% | Veneus DC: {venous_dc.get()}%")
-
 
 def select_occlusion():
     """Toon het pop-up venster voor het selecteren van arterieel/veneus en mild/ernstig."""
@@ -174,14 +174,16 @@ for name, action in scenarios.items():
 feedback_dc_var = tk.StringVar()
 feedback_dc_var.set(f"Arterieel DC: {arterial_dc.get()}% | Veneus DC: {venous_dc.get()}%")
 feedback_dc_label = tk.Label(root, textvariable=feedback_dc_var, font=("Arial", 14), fg="blue")
-feedback_dc_label.pack(pady=20)
+feedback_dc_label.pack(pady=10)
 
-# Feedback Label voor het geselecteerde scenario
+# Feedback voor de geselecteerde scenario
 feedback_var = tk.StringVar()
 feedback_var.set("Huidig scenario: Geen")
-feedback_label = tk.Label(root, textvariable=feedback_var, font=("Arial", 14), fg="blue")
-feedback_label.pack(pady=20)
+feedback_label = tk.Label(root, textvariable=feedback_var, font=("Arial", 16))
+feedback_label.pack(pady=10)
 
-# Start de seriële communicatie en de GUI loop
-receive_feedback()  # Start de feedback functie
+# Start feedback-ontvanger
+receive_feedback()
+
+# Start de GUI
 root.mainloop()
