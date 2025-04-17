@@ -61,49 +61,56 @@ def manual_adjust(val=None):
         send_command(cmd)
 
 # GUI
-tk.Label(root, text="Scenario Selectie", font=("Arial", 18)).pack(pady=10)
+top_frame = tk.Frame(root)
+top_frame.pack(pady=10)
 
-button_frame = tk.Frame(root)
-button_frame.pack(pady=10)
+# Scenario-knoppen
+button_frame = tk.LabelFrame(top_frame, text="Scenario Selectie", font=("Arial", 12))
+button_frame.grid(row=0, column=0, padx=10)
 
-tk.Button(button_frame, text="Hypertensie", width=18, height=2,
-          command=lambda: scenario_button("hypertensie", 70, 90)).grid(row=0, column=0, padx=5, pady=5)
-tk.Button(button_frame, text="Hypotensie", width=18, height=2,
-          command=lambda: scenario_button("hypotensie", 95, 62)).grid(row=0, column=1, padx=5, pady=5)
-tk.Button(button_frame, text="Occlusie Art. Mild", width=18, height=2,
-          command=lambda: scenario_button("occlusie_art-mild", 69, 90)).grid(row=1, column=0, padx=5, pady=5)
-tk.Button(button_frame, text="Occlusie Art. Ernstig", width=18, height=2,
-          command=lambda: scenario_button("occlusie_art-ernstig", 66, 90)).grid(row=1, column=1, padx=5, pady=5)
-tk.Button(button_frame, text="Occlusie Ven. Mild", width=18, height=2,
-          command=lambda: scenario_button("occlusie_ven-mild", 95, 60)).grid(row=2, column=0, padx=5, pady=5)
-tk.Button(button_frame, text="Occlusie Ven. Ernstig", width=18, height=2,
-          command=lambda: scenario_button("occlusie_ven-ernstig", 95, 58)).grid(row=2, column=1, padx=5, pady=5)
-tk.Button(button_frame, text="Stabiel", width=38, height=2,
-          command=lambda: scenario_button("stabiel", 95, 90)).grid(row=3, column=0, columnspan=2, pady=10)
-tk.Button(button_frame, text="RESET", width=38, height=2,
-          command=lambda: send_command("reset")).grid(row=4, column=0, columnspan=2, pady=5)
+scenario_buttons = [
+    ("Hypertensie", "hypertensie", 70, 90),
+    ("Hypotensie", "hypotensie", 95, 62),
+    ("Occlusie Art. Mild", "occlusie_art-mild", 69, 90),
+    ("Occlusie Art. Ernstig", "occlusie_art-ernstig", 66, 90),
+    ("Occlusie Ven. Mild", "occlusie_ven-mild", 95, 60),
+    ("Occlusie Ven. Ernstig", "occlusie_ven-ernstig", 95, 58),
+    ("Stabiel", "stabiel", 95, 90),
+]
 
-# Handmatige regeling
-tk.Label(root, text="Handmatige regeling", font=("Arial", 14)).pack(pady=10)
+for i, (label, cmd, art, ven) in enumerate(scenario_buttons):
+    r, c = divmod(i, 3)
+    tk.Button(button_frame, text=label, width=18, height=2,
+              command=lambda c=cmd, a=art, v=ven: scenario_button(c, a, v)).grid(row=r, column=c, padx=5, pady=5)
 
-sliders_frame = tk.Frame(root)
-sliders_frame.pack()
+tk.Button(button_frame, text="RESET", width=56, height=2,
+          command=lambda: send_command("reset")).grid(row=3, column=0, columnspan=3, pady=5)
+
+# Sliders (naast knoppen)
+slider_frame = tk.LabelFrame(top_frame, text="Handmatige regeling", font=("Arial", 12))
+slider_frame.grid(row=0, column=1, padx=10)
 
 arterial_dc = tk.DoubleVar(value=95)
 venous_dc = tk.DoubleVar(value=90)
 
-tk.Label(sliders_frame, text="Arterieel DC").grid(row=0, column=0)
-tk.Scale(sliders_frame, from_=0, to=100, variable=arterial_dc,
-         orient=tk.HORIZONTAL, command=manual_adjust).grid(row=0, column=1)
+tk.Label(slider_frame, text="Arterieel DC").grid(row=0, column=0, sticky="w")
+tk.Scale(slider_frame, from_=0, to=100, variable=arterial_dc,
+         orient=tk.HORIZONTAL, length=200, command=manual_adjust).grid(row=0, column=1)
 
-tk.Label(sliders_frame, text="Veneus DC").grid(row=1, column=0)
-tk.Scale(sliders_frame, from_=0, to=100, variable=venous_dc,
-         orient=tk.HORIZONTAL, command=manual_adjust).grid(row=1, column=1)
+tk.Label(slider_frame, text="Veneus DC").grid(row=1, column=0, sticky="w")
+tk.Scale(slider_frame, from_=0, to=100, variable=venous_dc,
+         orient=tk.HORIZONTAL, length=200, command=manual_adjust).grid(row=1, column=1)
+
+# Status en feedback onderin
+bottom_frame = tk.Frame(root)
+bottom_frame.pack(pady=10)
+
+status_label = tk.Label(bottom_frame, text="Status: Onbekend", font=("Arial", 10),
+                        bg="gray", fg="white", width=20)
+status_label.pack(pady=5)
 
 feedback_var = tk.StringVar()
-status_label = tk.Label(root, text="Status: Onbekend", font=("Arial", 10), bg="gray", fg="white", width=20)
-status_label.pack(pady=5)
-tk.Label(root, textvariable=feedback_var, font=("Arial", 12)).pack(pady=10)
+tk.Label(bottom_frame, textvariable=feedback_var, font=("Arial", 12)).pack()
 
 # Start feedback loop
 receive_feedback()
