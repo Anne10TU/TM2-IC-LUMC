@@ -61,7 +61,9 @@ def show_occlusie_choice(scenario):
 
     def handle_choice(choice):
         popup.destroy()
-        send_command(f"{scenario}-{choice}")
+        # Eerst de occlusie sturen en daarna de ernst
+        send_command(scenario)
+        send_command(choice)
 
     tk.Button(popup, text="Mild", font=("Arial", 12), width=10,
               command=lambda: handle_choice("mild")).pack(pady=5)
@@ -79,7 +81,7 @@ tk.Button(button_frame, text="Hypertensie", width=15, height=2,
 tk.Button(button_frame, text="Hypotensie", width=15, height=2,
           command=lambda: scenario_button("hypotensie", 95, 62)).grid(row=0, column=1, padx=5)
 tk.Button(button_frame, text="Occlusie Art.", width=15, height=2,
-          command=lambda: show_occlusie_choice("occlusie_art")).grid(row=1, column=0, pady=5)
+          command=lambda: send_command("occlusie_art")).grid(row=1, column=0, pady=5)
 tk.Button(button_frame, text="Occlusie Ven.", width=15, height=2,
           command=lambda: show_occlusie_choice("occlusie_ven")).grid(row=1, column=1, pady=5)
 tk.Button(button_frame, text="Stabiel", width=15, height=2,
