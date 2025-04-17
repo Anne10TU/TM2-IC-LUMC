@@ -99,13 +99,13 @@ def select_occlusion():
     occlusion_window.title("Selecteer Occlusie Type en Ernst")
     occlusion_window.geometry("300x250")
 
-   def send_occlusion(occlusie_type, severity):
-    """Stuur het geselecteerde scenario naar de Arduino met de juiste naamgeving."""
-    if occlusie_type == "arterieel":
-        set_scenario(f"occlusie_art-{severity}", 40, 90)  # Voorbeeld waarden voor arterieel
-    elif occlusie_type == "veneus":
-        set_scenario(f"occlusie_ven-{severity}", 95, 50)  # Voorbeeld waarden voor veneus
-    occlusion_window.destroy()
+    def send_occlusion(occlusie_type, severity):
+        """Stuur het geselecteerde scenario naar de Arduino met de juiste naamgeving."""
+        if occlusie_type == "arterieel":
+            set_scenario(f"occlusie_art-{severity}", 40, 90)  # Voorbeeld waarden voor arterieel
+        elif occlusie_type == "veneus":
+            set_scenario(f"occlusie_ven-{severity}", 95, 50)  # Voorbeeld waarden voor veneus
+        occlusion_window.destroy()
 
     # Selecteer arterieel of veneus
     tk.Label(occlusion_window, text="Selecteer type occlusie:", font=("Arial", 12)).pack(pady=10)
