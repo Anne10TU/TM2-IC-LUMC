@@ -1,83 +1,115 @@
 import tkinter as tk
 from tkinter import messagebox
 import serial
-import threading
-import time
 
-# Seriële verbinding instellen (pas de poort en baudrate aan indien nodig)
-ser = serial.Serial('/dev/rfcomm0', 9600, timeout=1)
-time.sleep(2)  # Geef tijd voor verbinding
+# Initialiseer seriële verbinding
+try:
+    ser = serial.Serial("/dev/rfcomm0", 9600, timeout=1)
+    print("Arduino verbonden via Bluetooth")
+except serial.SerialException:
+    messagebox.showerror("Fout", "Bluetooth-verbinding met Arduino mislukt.")
+    ser = None
 
-# Scenario's die verzonden kunnen worden
-scenarios = [
-    "normaal", "hypertensie", "hypotensie", "occlusie ven.",
-    "occlusie art.", "lucht", "leeg"
-]
-
-class ScenarioApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Scenario Selectie")
-        self.ready_for_command = True
-
-        # Status label
-        self.status_label = tk.Label(root, text="Status: Wachtend op selectie", font=("Arial", 12))
-        self.status_label.pack(pady=10)
-
-        # Buttons voor elk scenario
-        for scenario in scenarios:
-            button = tk.Button(root, text=scenario, font=("Arial", 14), width=20,
-                               command=lambda s=scenario: self.send_scenario(s))
-            button.pack(pady=5)
-
-        # Start thread om berichten van Arduino te ontvangen
-        self.receive_thread = threading.Thread(target=self.receive_from_arduino)
-        self.receive_thread.daemon = True
-        self.receive_thread.start()
-
-    def send_scenario(self, scenario):
-        if self.ready_for_command:
-            ser.write(f"{scenario}\n".encode())
-            print(f"Verzonden: {scenario}")
-            self.status_label.config(text=f"Scenario verzonden: {scenario}")
-            self.ready_for_command = False  # Wacht op reactie Arduino
-
-    def send_choice(self, keuze):
-        ser.write(f"{keuze}\n".encode())
-        print(f"Keuze verzonden: {keuze}")
-        self.status_label.config(text=f"Keuze verzonden: {keuze}")
-        self.ready_for_command = True
-
-    def show_choice_popup(self):
-        popup = tk.Toplevel(self.root)
-        popup.title("Kies ernst")
-
-        tk.Label(popup, text="Kies de ernst van de occlusie:", font=("Arial", 12)).pack(pady=10)
-
-        tk.Button(popup, text="Mild", font=("Arial", 12), width=10,
-                  command=lambda: self.handle_choice(popup, "mild")).pack(pady=5)
-        tk.Button(popup, text="Ernstig", font=("Arial", 12), width=10,
-                  command=lambda: self.handle_choice(popup, "ernstig")).pack(pady=5)
-
-    def handle_choice(self, popup, choice):
-        popup.destroy()
-        self.send_choice(choice)
-
-    def receive_from_arduino(self):
-        while True:
-            if ser.in_waiting > 0:
-                data = ser.readline().decode().strip()
-                print(f"Ontvangen van Arduino: {data}")
-                if data.lower() == "mild of ernstig?":
-                    self.root.after(0, self.show_choice_popup)
-                else:
-                    self.root.after(0, self.update_status, data)
-                    self.ready_for_command = True
-
-    def update_status(self, message):
-        self.status_label.config(text=f"Arduino zegt: {message}")
-
-# Start de GUI
 root = tk.Tk()
-app = ScenarioApp(root)
+root.title("ECMO Scenario Controller")
+root.geometry("800x480")
+
+is_ready = True
+
+def receive_feedback():
+    global is_ready
+    if ser:
+        while ser.in_waiting > 0:
+            try:
+                msg = ser.readline().decode().strip()
+                print(f"Ontvangen: {msg}")
+                if msg.lower() == "mild of ernstig?":
+                    show_choice_popup()
+                else:
+                    feedback_var.set(f"Arduino zegt: {msg}")
+                    if msg == "READY":
+                        is_ready = True
+            except:
+                pass
+    root.after(100, receive_feedback)
+
+def send_command(cmd):
+    global is_ready
+    if is_ready and ser:
+        try:
+            ser.write((cmd + "\n").encode())
+            print(f"Verzonden: {cmd}")
+            feedback_var.set(f"Scenario: {cmd}")
+            is_ready = False
+        except:
+            messagebox.showerror("Fout", "Kon commando niet verzenden.")
+    else:
+        messagebox.showwarning("Bezig", "Arduino is nog bezig met een scenario.")
+
+def scenario_button(scenario, art, ven):
+    arterial_dc.set(art)
+    venous_dc.set(ven)
+    send_command(scenario)
+
+def manual_adjust(val=None):
+    if is_ready:
+        cmd = f"DC-Arterieel-{arterial_dc.get()}-Veneus-{venous_dc.get()}"
+        send_command(cmd)
+
+def show_choice_popup():
+    popup = tk.Toplevel(root)
+    popup.title("Kies ernst")
+
+    tk.Label(popup, text="Kies de ernst van de occlusie:", font=("Arial", 12)).pack(pady=10)
+
+    def handle_choice(choice):
+        popup.destroy()
+        send_command(choice)
+
+    tk.Button(popup, text="Mild", font=("Arial", 12), width=10,
+              command=lambda: handle_choice("mild")).pack(pady=5)
+    tk.Button(popup, text="Ernstig", font=("Arial", 12), width=10,
+              command=lambda: handle_choice("ernstig")).pack(pady=5)
+
+# GUI-elementen
+tk.Label(root, text="Scenario Selectie", font=("Arial", 18)).pack(pady=10)
+
+button_frame = tk.Frame(root)
+button_frame.pack(pady=10)
+
+tk.Button(button_frame, text="Hypertensie", width=15, height=2,
+          command=lambda: scenario_button("hypertensie", 70, 90)).grid(row=0, column=0, padx=5)
+tk.Button(button_frame, text="Hypotensie", width=15, height=2,
+          command=lambda: scenario_button("hypotensie", 95, 62)).grid(row=0, column=1, padx=5)
+tk.Button(button_frame, text="Occlusie Art.", width=15, height=2,
+          command=lambda: send_command("occlusie_art")).grid(row=1, column=0, pady=5)
+tk.Button(button_frame, text="Occlusie Ven.", width=15, height=2,
+          command=lambda: send_command("occlusie_ven")).grid(row=1, column=1, pady=5)
+tk.Button(button_frame, text="Stabiel", width=15, height=2,
+          command=lambda: scenario_button("stabiel", 95, 90)).grid(row=2, column=0, columnspan=2, pady=10)
+
+# Sliders voor handmatige regeling
+tk.Label(root, text="Handmatige regeling", font=("Arial", 14)).pack(pady=10)
+
+sliders_frame = tk.Frame(root)
+sliders_frame.pack()
+
+arterial_dc = tk.DoubleVar(value=95)
+venous_dc = tk.DoubleVar(value=90)
+
+tk.Label(sliders_frame, text="Arterieel DC").grid(row=0, column=0)
+tk.Scale(sliders_frame, from_=0, to=100, variable=arterial_dc,
+         orient=tk.HORIZONTAL, command=manual_adjust).grid(row=0, column=1)
+
+tk.Label(sliders_frame, text="Veneus DC").grid(row=1, column=0)
+tk.Scale(sliders_frame, from_=0, to=100, variable=venous_dc,
+         orient=tk.HORIZONTAL, command=manual_adjust).grid(row=1, column=1)
+
+feedback_var = tk.StringVar()
+tk.Label(root, textvariable=feedback_var, font=("Arial", 12)).pack(pady=10)
+
+# Start de feedback loop
+receive_feedback()
+
+# Start GUI
 root.mainloop()
