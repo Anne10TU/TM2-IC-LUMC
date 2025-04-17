@@ -23,12 +23,9 @@ def receive_feedback():
             try:
                 msg = ser.readline().decode().strip()
                 print(f"Ontvangen: {msg}")
-                if msg.lower() == "mild of ernstig?":
-                    show_choice_popup()
-                else:
-                    feedback_var.set(f"Arduino zegt: {msg}")
-                    if msg == "READY":
-                        is_ready = True
+                feedback_var.set(f"Arduino zegt: {msg}")
+                if msg == "READY":
+                    is_ready = True
             except:
                 pass
     root.after(100, receive_feedback)
@@ -56,7 +53,7 @@ def manual_adjust(val=None):
         cmd = f"DC-Arterieel-{arterial_dc.get()}-Veneus-{venous_dc.get()}"
         send_command(cmd)
 
-def show_choice_popup():
+def show_occlusie_choice(scenario):
     popup = tk.Toplevel(root)
     popup.title("Kies ernst")
 
@@ -64,7 +61,7 @@ def show_choice_popup():
 
     def handle_choice(choice):
         popup.destroy()
-        send_command(choice)
+        send_command(f"{scenario}-{choice}")
 
     tk.Button(popup, text="Mild", font=("Arial", 12), width=10,
               command=lambda: handle_choice("mild")).pack(pady=5)
@@ -82,9 +79,9 @@ tk.Button(button_frame, text="Hypertensie", width=15, height=2,
 tk.Button(button_frame, text="Hypotensie", width=15, height=2,
           command=lambda: scenario_button("hypotensie", 95, 62)).grid(row=0, column=1, padx=5)
 tk.Button(button_frame, text="Occlusie Art.", width=15, height=2,
-          command=lambda: send_command("occlusie_art")).grid(row=1, column=0, pady=5)
+          command=lambda: show_occlusie_choice("occlusie_art")).grid(row=1, column=0, pady=5)
 tk.Button(button_frame, text="Occlusie Ven.", width=15, height=2,
-          command=lambda: send_command("occlusie_ven")).grid(row=1, column=1, pady=5)
+          command=lambda: show_occlusie_choice("occlusie_ven")).grid(row=1, column=1, pady=5)
 tk.Button(button_frame, text="Stabiel", width=15, height=2,
           command=lambda: scenario_button("stabiel", 95, 90)).grid(row=2, column=0, columnspan=2, pady=10)
 
