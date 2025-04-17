@@ -26,9 +26,17 @@ def receive_feedback():
                 feedback_var.set(f"Arduino zegt: {msg}")
                 if msg == "READY":
                     is_ready = True
+                    status_label.config(text="Status: READY", bg="green")
+                elif msg == "RUNNING":
+                    status_label.config(text="Status: ACTIEF", bg="orange")
+                elif msg == "ERROR":
+                    status_label.config(text="Status: FOUT", bg="red")
+                else:
+                    status_label.config(text=f"Status: {msg}", bg="gray")
             except:
                 pass
     root.after(100, receive_feedback)
+
 
 def send_command(cmd):
     global is_ready
@@ -73,6 +81,9 @@ tk.Button(button_frame, text="Occlusie Ven. Ernstig", width=18, height=2,
           command=lambda: scenario_button("occlusie_ven-ernstig", 95, 58)).grid(row=2, column=1, padx=5, pady=5)
 tk.Button(button_frame, text="Stabiel", width=38, height=2,
           command=lambda: scenario_button("stabiel", 95, 90)).grid(row=3, column=0, columnspan=2, pady=10)
+tk.Button(right_frame, text="RESET", **button_style,
+          command=lambda: send_command("reset")).pack(pady=5)
+
 
 # Handmatige regeling
 tk.Label(root, text="Handmatige regeling", font=("Arial", 14)).pack(pady=10)
@@ -92,6 +103,8 @@ tk.Scale(sliders_frame, from_=0, to=100, variable=venous_dc,
          orient=tk.HORIZONTAL, command=manual_adjust).grid(row=1, column=1)
 
 feedback_var = tk.StringVar()
+status_label = tk.Label(root, text="Status: Onbekend", font=("Arial", 10), bg="gray", fg="white", width=20)
+status_label.pack(pady=5)
 tk.Label(root, textvariable=feedback_var, font=("Arial", 12)).pack(pady=10)
 
 # Start feedback loop
