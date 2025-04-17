@@ -37,7 +37,7 @@ def send_command(cmd):
             ser.write((cmd + "\n").encode())
             print(f"Verzonden: {cmd}")
             feedback_var.set(f"Scenario: {cmd}")
-            is_ready = False
+            is_ready = False  # Zeg dat de Arduino nu bezig is
         except:
             messagebox.showerror("Fout", "Kon commando niet verzenden.")
     else:
@@ -61,9 +61,11 @@ def show_occlusie_choice(scenario):
 
     def handle_choice(choice):
         popup.destroy()
-        # Eerst de occlusie sturen en daarna de ernst, zonder te wachten op "READY"
+        # Eerst de occlusie sturen, reset 'is_ready' zodat we zonder wachten verder kunnen
         send_command(scenario)  # Occlusie scenario versturen
         send_command(choice)    # Keuze voor mild/ernstig versturen
+        # Reset 'is_ready' om geen blokkades in de GUI te krijgen
+        is_ready = True
 
     tk.Button(popup, text="Mild", font=("Arial", 12), width=10,
               command=lambda: handle_choice("mild")).pack(pady=5)
