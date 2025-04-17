@@ -61,9 +61,9 @@ def show_occlusie_choice(scenario):
 
     def handle_choice(choice):
         popup.destroy()
-        # Eerst de occlusie sturen en daarna de ernst
-        send_command(scenario)
-        send_command(choice)
+        # Eerst de occlusie sturen en daarna de ernst, zonder te wachten op "READY"
+        send_command(scenario)  # Occlusie scenario versturen
+        send_command(choice)    # Keuze voor mild/ernstig versturen
 
     tk.Button(popup, text="Mild", font=("Arial", 12), width=10,
               command=lambda: handle_choice("mild")).pack(pady=5)
