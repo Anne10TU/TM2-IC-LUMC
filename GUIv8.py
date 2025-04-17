@@ -37,7 +37,6 @@ def receive_feedback():
                 pass
     root.after(100, receive_feedback)
 
-
 def send_command(cmd):
     global is_ready
     if is_ready and ser:
@@ -81,9 +80,8 @@ tk.Button(button_frame, text="Occlusie Ven. Ernstig", width=18, height=2,
           command=lambda: scenario_button("occlusie_ven-ernstig", 95, 58)).grid(row=2, column=1, padx=5, pady=5)
 tk.Button(button_frame, text="Stabiel", width=38, height=2,
           command=lambda: scenario_button("stabiel", 95, 90)).grid(row=3, column=0, columnspan=2, pady=10)
-tk.Button(button_frame, text="RESET", **button_style,
-          command=lambda: send_command("reset")).pack(pady=5)
-
+tk.Button(button_frame, text="RESET", width=38, height=2,
+          command=lambda: send_command("reset")).grid(row=4, column=0, columnspan=2, pady=5)
 
 # Handmatige regeling
 tk.Label(root, text="Handmatige regeling", font=("Arial", 14)).pack(pady=10)
