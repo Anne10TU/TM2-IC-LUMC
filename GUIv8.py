@@ -81,7 +81,7 @@ tk.Button(button_frame, text="Occlusie Ven. Ernstig", width=18, height=2,
           command=lambda: scenario_button("occlusie_ven-ernstig", 95, 58)).grid(row=2, column=1, padx=5, pady=5)
 tk.Button(button_frame, text="Stabiel", width=38, height=2,
           command=lambda: scenario_button("stabiel", 95, 90)).grid(row=3, column=0, columnspan=2, pady=10)
-tk.Button(right_frame, text="RESET", **button_style,
+tk.Button(button_frame, text="RESET", **button_style,
           command=lambda: send_command("reset")).pack(pady=5)
 
 
